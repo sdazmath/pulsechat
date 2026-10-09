@@ -34,12 +34,8 @@ USER pulseuser
 # Expose default HTTP/WebSocket port
 EXPOSE 8080
 
-# Configure JVM flags optimized for containerized environments
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
+# Configure JVM flags optimized for 512MB containerized environments (Render Free Tier)
+ENV JAVA_OPTS="-XX:+UseContainerSupport -Xmx350m -Xss512k -Djava.security.egd=file:/dev/./urandom"
 ENV SPRING_PROFILES_ACTIVE="prod"
-
-# Health check verifies the HTTP endpoint responds dynamically based on PORT env variable
-HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-  CMD curl -f http://localhost:${PORT:-8080}/ || exit 1
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
