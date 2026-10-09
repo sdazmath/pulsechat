@@ -27,7 +27,7 @@ RUN addgroup -S pulsegroup && adduser -S pulseuser -G pulsegroup
 
 # Copy executable jar from builder stage
 COPY --from=builder /workspace/target/*.jar app.jar
-RUN chown -R pulseuser:pulsegroup /app
+RUN mkdir -p /app/data && chown -R pulseuser:pulsegroup /app
 
 USER pulseuser
 
@@ -38,8 +38,8 @@ EXPOSE 8080
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
 ENV SPRING_PROFILES_ACTIVE="prod"
 
-# Health check verifies the HTTP endpoint responds
+# Health check verifies the HTTP endpoint responds dynamically based on PORT env variable
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-  CMD curl -f http://localhost:8080/ || exit 1
+  CMD curl -f http://localhost:${PORT:-8080}/ || exit 1
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
