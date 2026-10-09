@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>PulseChat — Real-Time Messaging</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300a884'><path d='M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.38 5.08L2 22l5.08-1.38A9.95 9.95 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z'/></svg>">
+</head>
+
+<body class="dark-mode">
+
+    <!-- Reconnection Alert Banner -->
+    <div id="reconnect-banner" class="reconnect-banner" style="display:none;">
+        <span class="reconnect-spinner"></span>
+        <span class="reconnect-text">Connection lost. Reconnecting to PulseChat...</span>
+    </div>
+
+    <div class="app-viewport">
+
+        <!-- AUTH SCREEN (WhatsApp / Telegram style sleek landing & sign-in) -->
+        <div id="username-section" class="auth-wrapper">
+            <div class="auth-container">
+                <div class="auth-brand">
+                    <div class="brand-logo-glow">
+                        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                            <path d="M9 12h.01M12 12h.01M15 12h.01" stroke-width="3.5" stroke-linecap="round"></path>
+                        </svg>
+                    </div>
+                    <h1 class="brand-name">PulseChat</h1>
+                    <p class="brand-tagline">Real-time messaging, reimagined for speed & privacy</p>
+                </div>
+
+                <div class="auth-card">
+                    <div class="auth-tabs">
+                        <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">
+                            <span class="tab-icon">🔑</span> Sign In
+                        </button>
+                        <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">
+                            <span class="tab-icon">✨</span> Register
+                        </button>
+                        <button class="auth-tab" id="tab-guest" onclick="switchAuthTab('guest')">
+                            <span class="tab-icon">⚡</span> Quick Guest
+                        </button>
+                    </div>
+
+                    <!-- Login Form -->
+                    <div id="auth-login-form" class="auth-form-panel">
+                        <div class="input-field-group">
+                            <span class="input-icon">👤</span>
+                            <input
+                                type="text"
+                                id="login-username"
+                                placeholder="Username"
+                                maxlength="20"
+                                autocomplete="username"
+                                onkeydown="if(event.key === 'Enter') handleLogin();"
+                            >
+                        </div>
+                        <div class="input-field-group">
+                            <span class="input-icon">🔒</span>
+                            <input
+                                type="password"
+                                id="login-password"
+                                placeholder="Password"
+                                autocomplete="current-password"
+                                onkeydown="if(event.key === 'Enter') handleLogin();"
+                            >
+                        </div>
+                        <button onclick="handleLogin()" id="btn-login-submit" class="btn-auth-action">
+                            <span>Sign In & Enter PulseChat</span>
+                            <span class="btn-arrow">→</span>
+                        </button>
+                    </div>
+
+                    <!-- Register Form -->
+                    <div id="auth-register-form" class="auth-form-panel" style="display:none;">
+                        <div class="input-field-group">
+                            <span class="input-icon">👤</span>
+                            <input
+                                type="text"
+                                id="reg-username"
+                                placeholder="Username (3–20 alphanumeric)"
+                                maxlength="20"
+                                autocomplete="username"
+                            >
+                        </div>
+                        <div class="input-field-group">
+                            <span class="input-icon">🔒</span>
+                            <input
+                                type="password"
+                                id="reg-password"
+                                placeholder="Password (min 4 characters)"
+                                autocomplete="new-password"
+                            >
+                        </div>
+                        <div class="input-field-group">
+                            <span class="input-icon">✉️</span>
+                            <input
+                                type="email"
+                                id="reg-email"
+                                placeholder="Email (optional)"
+                                autocomplete="email"
+                            >
+                        </div>
+                        <div class="input-field-group">
+                            <span class="input-icon">💬</span>
+                            <input
+                                type="text"
+                                id="reg-bio"
+                                placeholder="Bio / Status (optional)"
+                                maxlength="150"
+                                onkeydown="if(event.key === 'Enter') handleRegister();"
+                            >
+                        </div>
+                        <button onclick="handleRegister()" id="btn-register-submit" class="btn-auth-action">
+                            <span>Create Account</span>
+                            <span class="btn-arrow">→</span>
+                        </button>
+                    </div>
+
+                    <!-- Guest Form -->
+                    <div id="auth-guest-form" class="auth-form-panel" style="display:none;">
+                        <div class="input-field-group">
+                            <span class="input-icon">⚡</span>
+                            <input
+                                type="text"
+                                id="guest-username"
+                                placeholder="Choose temporary username"
+                                maxlength="20"
+                                onkeydown="if(event.key === 'Enter') handleGuestJoin();"
+                            >
+                        </div>
+                        <button onclick="handleGuestJoin()" id="btn-guest-submit" class="btn-auth-action">
+                            <span>Join as Guest</span>
+                            <span class="btn-arrow">→</span>
+                        </button>
+                    </div>
+
+                    <div id="username-error" class="error-banner"></div>
+                </div>
+
+                <div class="auth-feature-pills">
+                    <span class="feature-pill">⚡ WebSocket Speed</span>
+                    <span class="feature-pill">🔒 BCrypt Security</span>
+                    <span class="feature-pill">💬 Channels & DMs</span>
+                    <span class="feature-pill">✓✓ Delivery Ticks</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN SPLIT CHAT SHELL (WhatsApp / Telegram Web Layout) -->
+        <div id="chat-section" class="chat-app-shell">
+
+            <!-- SIDEBAR PANE -->
+            <aside class="chat-sidebar" id="chat-sidebar">
+
+                <!-- Sidebar Top User Bar -->
+                <div class="sidebar-user-header">
+                    <div class="user-profile-badge" onclick="openProfileModal()" title="View and edit profile">
+                        <div class="avatar-wrapper">
+                            <span class="avatar-circle avatar-sm" id="my-avatar"></span>
+                            <span class="presence-pulse-dot" title="Online"></span>
+                        </div>
+                        <div class="user-meta">
+                            <strong id="my-username-display" class="user-name-text"></strong>
+                            <span class="user-status-text">Online • ✎ Profile</span>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-header-actions">
+                        <button id="notif-btn" class="sidebar-icon-btn" onclick="requestNotificationPermission()" title="Enable browser notifications" aria-label="Notifications">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                        </button>
+                        <button id="theme-toggle-btn" class="sidebar-icon-btn" onclick="toggleTheme()" title="Toggle dark/light mode" aria-label="Theme toggle">
+                            🌙
+                        </button>
+                        <button class="sidebar-icon-btn btn-leave" onclick="leaveChat()" title="Leave chat / Log out" aria-label="Leave chat">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="sidebar-search-box">
+                    <div class="search-input-wrapper">
+                        <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input
+                            type="text"
+                            id="sidebar-search-input"
+                            placeholder="Search rooms or contacts..."
+                            oninput="handleSidebarSearch(this.value)"
+                        >
+                    </div>
+                </div>
+
+                <!-- Scrollable Content -->
+                <div class="sidebar-scrollable-content">
+
+                    <!-- Chat Rooms Section -->
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-header">
+                            <span class="section-label">CHANNELS & ROOMS</span>
+                            <button class="btn-create-room-chip" onclick="openCreateRoomModal()" title="Create new chat room">
+                                + New Room
+                            </button>
+                        </div>
+                        <div id="room-tabs" class="room-tabs-list"></div>
+                    </div>
+
+                    <!-- Online Users Section -->
+                    <div class="sidebar-section" id="online-users">
+                        <div class="sidebar-section-header">
+                            <span class="section-label" id="online-users-title">ONLINE CONTACTS (0)</span>
+                        </div>
+                        <ul id="user-list" class="contacts-list"></ul>
+                    </div>
+
+                </div>
+
+            </aside>
+
+            <!-- MAIN CONVERSATION PANE -->
+            <main class="chat-main-pane">
+
+                <!-- Conversation Top Header -->
+                <header class="conversation-header">
+                    <button class="btn-mobile-sidebar-toggle" onclick="toggleMobileSidebar()" title="Back to chats">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    </button>
+
+                    <div class="channel-info-group">
+                        <div class="channel-avatar-badge" id="active-channel-avatar">
+                            <span class="channel-icon" id="channel-icon">#</span>
+                        </div>
+                        <div class="channel-text-details">
+                            <h2 class="channel-name" id="channel-name">General</h2>
+                            <span class="channel-presence-sub" id="channel-presence-sub">Real-time room</span>
+                        </div>
+                    </div>
+
+                    <div class="conversation-header-actions">
+                        <button id="exit-private-btn" class="btn-exit-private" onclick="exitPrivateMode()" style="display:none;" title="Return to rooms">
+                            ← Back to Rooms
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Messages Canvas (WhatsApp Wallpaper pattern) -->
+                <div class="messages-canvas">
+                    <div id="messages" class="messages-stream"></div>
+                    <div id="typing-indicator" class="typing-indicator"></div>
+                </div>
+
+                <!-- Bottom Input & Context Bar -->
+                <footer class="conversation-footer">
+                    <!-- Action Context Banner (Replies & Edits) -->
+                    <div id="action-context-banner" class="action-context-banner" style="display:none;">
+                        <div class="context-accent-bar"></div>
+                        <div class="context-info">
+                            <strong id="context-title">Replying to Alice</strong>
+                            <span id="context-snippet">"Original message text..."</span>
+                        </div>
+                        <button class="context-cancel-btn" onclick="cancelActionContext()" title="Cancel">✕</button>
+                    </div>
+
+                    <!-- Message Input Row -->
+                    <div class="chat-input-row">
+                        <div class="input-pill-container">
+                            <input
+                                type="text"
+                                id="message"
+                                placeholder="Type a message..."
+                                maxlength="500"
+                                oninput="handlePublicInput()"
+                                onkeydown="handleKeyPress(event)"
+                                autocomplete="off"
+                            >
+                            <span class="char-counter" id="public-char-counter">0 / 500</span>
+                        </div>
+                        <button onclick="handleSendAction()" id="send-btn" class="btn-send-circle" title="Send message">
+                            <svg class="send-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </footer>
+
+            </main>
+
+        </div>
+
+    </div>
+
+    <!-- Create Room Modal -->
+    <div id="create-room-modal" class="modal-backdrop" style="display:none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Create New Room</h3>
+                <button class="modal-close-icon" onclick="closeCreateRoomModal()">✕</button>
+            </div>
+            <p class="modal-hint">Choose a channel name (2–30 characters, e.g. DevOps, Coffee, Gaming)</p>
+            <div class="modal-input-group">
+                <span class="modal-prefix">#</span>
+                <input
+                    type="text"
+                    id="new-room-name"
+                    placeholder="room-name"
+                    maxlength="30"
+                    onkeydown="if(event.key === 'Enter') submitCreateRoom();"
+                >
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal-cancel" onclick="closeCreateRoomModal()">Cancel</button>
+                <button class="btn-modal-create" onclick="submitCreateRoom()">Create Room</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div id="profile-modal" class="modal-backdrop" style="display:none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="profile-modal-user-block">
+                    <span class="avatar-circle avatar-md" id="modal-avatar"></span>
+                    <div>
+                        <h3 id="modal-username">User Profile</h3>
+                        <span class="modal-hint" id="modal-account-status">Registered Member</span>
+                    </div>
+                </div>
+                <button class="modal-close-icon" onclick="closeProfileModal()">✕</button>
+            </div>
+            
+            <div class="profile-field">
+                <label for="modal-bio">About / Bio:</label>
+                <textarea id="modal-bio" maxlength="250" placeholder="Write something about yourself..."></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-modal-cancel" onclick="closeProfileModal()">Close</button>
+                <button class="btn-modal-create" onclick="saveProfileChanges()">Save Profile</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- External STOMP and SockJS scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.2.1/bundles/stomp.umd.min.js"></script>
+    <script src="app.js?v=20"></script>
+
+</body>
+
+</html>
